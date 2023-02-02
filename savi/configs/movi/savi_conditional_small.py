@@ -156,7 +156,7 @@ def get_config():
       # Unconditional: slots are initialized as Gaussian noises
       "initializer": ml_collections.ConfigDict({
             "module": "savi.modules.GaussianStateInit",
-            "shape": [128]
+            "shape": [config.num_slots, 128]
       }),
 
       # Decoder.
