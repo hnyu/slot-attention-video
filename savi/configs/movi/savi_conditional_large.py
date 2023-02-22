@@ -24,17 +24,18 @@ Set `center_of_mass` to `True` to condition on center-of-mass coords instead.
 """
 
 import ml_collections
+import numpy as np
 
 
 def get_config():
   """Get the default hyperparameter configuration."""
   config = ml_collections.ConfigDict()
 
-  config.seed = 42
+  config.seed = np.random.randint(10000000)
   config.seed_data = True
 
   config.batch_size = 64
-  config.num_train_steps = 500000
+  config.num_train_steps = 100000
 
   # Adam optimizer config.
   config.learning_rate = 2e-4
@@ -68,7 +69,7 @@ def get_config():
   # since MOVi-D and MOVi-E contain up to 23 objects per video. Setting
   # config.max_instances to a smaller number than the maximum number of objects
   # in a dataset will discard objects, ultimately giving different results.
-  config.max_instances = 23
+  config.max_instances = 10
   config.num_slots = config.max_instances + 1  # Only used for metrics.
   config.logging_min_n_colors = config.max_instances
 
@@ -93,7 +94,7 @@ def get_config():
   config.eval_slice_keys = ["video", "segmentations", "flow", "boxes"]
 
   # Dictionary of targets and corresponding channels. Losses need to match.
-  config.targets = {"flow": 3}
+  config.targets = {"video": 3}
   config.losses = ml_collections.ConfigDict({
       f"recon_{target}": {"loss_type": "recon", "key": target}
       for target in config.targets})
@@ -141,17 +142,23 @@ def get_config():
           "mlp_size": 256
       }),
 
-      # Initializer.
+      ## Initializer.
+      #"initializer": ml_collections.ConfigDict({
+      #    "module": "savi.modules.CoordinateEncoderStateInit",
+      #    "prepend_background": True,
+      #    "center_of_mass": False,
+      #    "embedding_transform": ml_collections.ConfigDict({
+      #        "module": "savi.modules.MLP",
+      #        "hidden_size": 256,
+      #        "output_size": 128,
+      #        "layernorm": None
+      #    }),
+      #}),
+
+      # Unconditional: slots are initialized as Gaussian noises
       "initializer": ml_collections.ConfigDict({
-          "module": "savi.modules.CoordinateEncoderStateInit",
-          "prepend_background": True,
-          "center_of_mass": False,
-          "embedding_transform": ml_collections.ConfigDict({
-              "module": "savi.modules.MLP",
-              "hidden_size": 256,
-              "output_size": 128,
-              "layernorm": None
-          }),
+            "module": "savi.modules.GaussianStateInit",
+            "shape": [config.num_slots, 128]
       }),
 
       # Decoder.

@@ -23,13 +23,14 @@ Set `center_of_mass` to `True` to condition on center-of-mass coords instead.
 """
 
 import ml_collections
+import numpy as np
 
 
 def get_config():
   """Get the default hyperparameter configuration."""
   config = ml_collections.ConfigDict()
 
-  config.seed = 42
+  config.seed = np.random.randint(100000000)
   config.seed_data = True
 
   config.batch_size = 64
